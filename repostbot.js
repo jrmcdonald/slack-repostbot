@@ -56,7 +56,7 @@ controller.on('ambient', function(bot,message) {
           var unixts = op.timestamp.split('.')[0];
           var date = moment.unix(unixts).format("DD/MM/YYYY HH:MM:ss");
 
-          var response = url + ' was posted by <@' + op.user + '> on ' + date + '.';
+          var response = '<' + url + '> was posted by <@' + op.user + '> on ' + date + '.';
 
           bot.reply(message, {
             text: response,
@@ -94,7 +94,7 @@ controller.on('direct_message', function(bot, message) {
             var unixts = op.timestamp.split('.')[0];
             var date = moment.unix(unixts).format("DD/MM/YYYY HH:MM:ss");
 
-            var response = url + ' was posted in <#' + op.channel + '> on ' + date + '.';
+            var response = '<' + url + '> was posted in <#' + op.channel + '> on ' + date + '.';
 
             bot.reply(message, {
               text: response,
