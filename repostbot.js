@@ -7,31 +7,26 @@ var botkit = require('botkit');
 var linkify = require('linkifyjs');
 var moment = require('moment');
 
+// Regex match links in slack messages, links will be formatted:
+// <http://www.google.com|label>
+// <http://www.googele.com>
+var pattern = /<(.+?)>/g;
+
+// Set up the controller uing jfs
 var controller = botkit.slackbot({
   debug: false,
   json_file_store: './storage'
 });
 
+// Grab the worker so we can call the Slack Web API directly
 var worker = controller.spawn({
   token: process.env.token
 }).startRTM()
 
-var pattern = /<(.+?)>/g;
-
-function refreshUsers() {
-  worker.api.users.list({}, function(err, res) {
-    var users = res.members;
-
-    for (var u in users) {
-      var user = users[u];
-
-      controller.storage.users.save({id: user.id, name: user.name});
-    }
-  });
-}
-
-refreshUsers();
-
+/**
+ * Listen to all messages and process for links. When a link is 
+ * found, determine if it is a repost and respond accordingly.
+ */
 controller.on('ambient', function(bot,message) {
   var matches = message.text.match(pattern);
 
@@ -94,6 +89,10 @@ controller.on('ambient', function(bot,message) {
   }
 });
 
+/**
+ * Respond to direct messages by checking whether the supplied
+ * link is a repost or not.
+ */
 controller.on('direct_message', function(bot, message) {
   var matches = message.text.match(pattern);
 
@@ -134,3 +133,21 @@ controller.on('direct_message', function(bot, message) {
   }
 });
 
+/**
+ * Fetch an updated list of users from the Slack Web API and
+ * store the user list.
+ */
+function refreshUsers() {
+  worker.api.users.list({}, function(err, res) {
+    var users = res.members;
+
+    for (var u in users) {
+      var user = users[u];
+
+      controller.storage.users.save({id: user.id, name: user.name});
+    }
+  });
+}
+
+// Refresh the user list when starting up
+refreshUsers();
