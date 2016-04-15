@@ -12,11 +12,25 @@ var controller = botkit.slackbot({
   json_file_store: './storage'
 });
 
-controller.spawn({
+var worker = controller.spawn({
   token: process.env.token
 }).startRTM()
 
 var pattern = /<(.+?)>/g;
+
+function refreshUsers() {
+  worker.api.users.list({}, function(err, res) {
+    var users = res.members;
+
+    for (var u in users) {
+      var user = users[u];
+
+      controller.storage.users.save({id: user.id, name: user.name});
+    }
+  });
+}
+
+refreshUsers();
 
 controller.on('ambient', function(bot,message) {
   var matches = message.text.match(pattern);
@@ -56,13 +70,23 @@ controller.on('ambient', function(bot,message) {
           var unixts = op.timestamp.split('.')[0];
           var date = moment.unix(unixts).format("DD/MM/YYYY HH:MM:ss");
 
-          var response = '<' + url + '> was posted by <@' + op.user + '> on ' + date + '.';
+          refreshUsers();
 
-          bot.reply(message, {
-            text: response,
-            link_names: 0,
-            unfurl_links: false,
-            unfurl_media: false
+          controller.storage.users.get(op.user, function(err, user) {
+            var response = '<' + url + '> was posted';
+
+            if (user) {
+              response += ' by ' + user.name;
+            }
+
+            response += ' on ' + date + '.';
+
+            bot.reply(message, {
+              text: response,
+              link_names: 0,
+              unfurl_links: false,
+              unfurl_media: false
+            });
           });
         });
       });
