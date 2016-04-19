@@ -27,65 +27,26 @@ var worker = controller.spawn({
  * Listen to all messages and process for links. When a link is 
  * found, determine if it is a repost and respond accordingly.
  */
-controller.on('ambient', function(bot,message) {
+controller.on('ambient', function(bot, message) {
   var matches = message.text.match(pattern);
 
   if (matches) {
-    var urls = []
-    for (var i = 0; i < matches.length; i++) {
-      url = matches[i].split('|')[0].replace(/[<>]/g, '');
-      if (linkify.test(url)) {
-        controller.storage.channels.get(message.channel, function(err, data) {
-          if (!data) {
-            data = {
-              id: message.channel,
-              urls: {}
-            }
-          }
-
-          if (url in data.urls) {
-            urls.push(url);
-          } else {
-            data.urls[url] = {
-              user: message.user,
-              channel: message.channel,
-              timestamp: message.ts
-            }
-            controller.storage.channels.save(data);
-          }
-        });
+    var reposts = [];
+    
+    controller.storage.channels.get(message.channel, function(err, channel) {
+      if (!channel) {
+        channel = { 
+          id: message.channel,
+          urls: {}
+        };
       }
-    }
-
-    if (urls.length > 0) {
-      controller.storage.channels.get(message.channel, function(err, data) {
-        urls.forEach(function(url, index, array) {
-          var op = data.urls[url];
-
-          var unixts = op.timestamp.split('.')[0];
-          var date = moment.unix(unixts).format("DD/MM/YYYY HH:MM:ss");
-
-          refreshUsers();
-
-          controller.storage.users.get(op.user, function(err, user) {
-            var response = '<' + url + '> was posted';
-
-            if (user) {
-              response += ' by ' + user.name;
-            }
-
-            response += ' on ' + date + '.';
-
-            bot.reply(message, {
-              text: response,
-              link_names: 0,
-              unfurl_links: false,
-              unfurl_media: false
-            });
-          });
-        });
+        
+      processMatches(channel, message, matches).then(function(reposts) {
+        handleRepostResponses(bot, channel, message, reposts);
+      }).catch(function(err) {
+        console.log("ERROR: An error occurred whilst processing matches: " + err);
       });
-    }
+    });
   }
 });
 
@@ -97,47 +58,184 @@ controller.on('direct_message', function(bot, message) {
   var matches = message.text.match(pattern);
 
   if (matches) {
-    var urls = []
+    var validUrls = []
 
     for (var i = 0; i < matches.length; i++) {
       url = matches[i].split('|')[0].replace(/[<>]/g, '');
       if (linkify.test(url)) {
-        urls.push(url);
+        validUrls.push(url);
       }
     }
 
-    if (urls.length > 0) {
-    controller.storage.channels.all(function(err, all_data) {
-      for (var d in all_data) {
-        var data = all_data[d];
-        urls.forEach(function(url, index, array) {
-          if (url in data.urls) {
-            var op = data.urls[url];
+    if (validUrls.length > 0) {
+      controller.storage.channels.all(function(err, all_channels) {
+        for (var d in all_channels) {
+          var channel = all_channels[d];
+          validUrls.forEach(function(url, index, array) {
+            if (url in channel.urls) {
+              var op = channel.urls[url];
+              
+              var date = parseTimestamp(op.timestamp);
 
-            var unixts = op.timestamp.split('.')[0];
-            var date = moment.unix(unixts).format("DD/MM/YYYY HH:MM:ss");
+              var response = '<' + url + '> was posted in <#' + op.channel + '> on ' + date + '.';
 
-            var response = '<' + url + '> was posted in <#' + op.channel + '> on ' + date + '.';
+              bot.reply(message, {
+                text: response,
+                link_names: 0,
+                unfurl_links: false,
+                unfurl_media: false
+              });
+            }
+          });
+        }
+      });
+    }
+  }
+});
 
-            bot.reply(message, {
-              text: response,
-              link_names: 0,
-              unfurl_links: false,
-              unfurl_media: false
+/**
+ * Parse matches for links. Returns a Promise with either an array
+ * of reposted URLs or an error.
+ */
+function processMatches(channel, message, matches) {
+  return new Promise(function(resolve, reject) {
+    var reposts = [];
+    var promises = [];
+    
+    for (var i = 0; i < matches.length; i++) {
+      // Remove the link label after the pipe character and replace the angle brackets
+      url = matches[i].split('|')[0].replace(/[<>]/g, '');
+      
+      if (linkify.test(url)) {
+        console.log("DEBUG: Processing url " + url);
+        
+        if (url in channel.urls) {
+          console.log("DEBUG: Repost detected");
+          
+          reposts.push(url);
+          
+          channel.urls[url].count = (channel.urls[url].count || 0) + 1;
+          
+          promises.push(new Promise(function(resolve, reject) {
+            controller.storage.users.get(message.user, function(err, user) {
+              console.log("DEBUG: Incrementing count for user " + message.user);
+              
+              if (!user) {
+                user = {
+                  id: message.user
+                };
+              }
+              
+              user.count = (user.count || 0) + 1;
+              
+              controller.storage.users.save(user, function(err, res) {
+                if (err) {
+                  reject(Error("An error occurred whilst saving the user: " + err));
+                } else {
+                  resolve();
+                }
+              });
             });
+          }));
+        } else {
+          console.log("DEBUG: Not a repost, saving URL in JSON storage.");
+          
+          channel.urls[url] = {
+            user: message.user,
+            channel: message.channel,
+            timestamp: message.ts,
+            count: 0
+          }
+        }
+        
+        controller.storage.channels.save(channel, function(err, res) {
+          if (err) {
+            reject(Error("An error occurred whilst saving the channel: " + err));
           }
         });
       }
+    }
+    
+    Promise.all(promises).then(function() {
+      resolve(reposts);
+    }).catch(function(err) {
+      reject(err);      
+    });
+  });    
+}
+
+/**
+ * Send a reply for each repost.
+ */
+function handleRepostResponses(bot, channel, message, reposts) {
+  if (reposts.length > 0) {
+    reposts.forEach(function(url, index, array) {
+      var op = channel.urls[url];
+      var date = parseTimestamp(op.timestamp);
+      
+      fetchUser(op.user).then(function(user) {
+        var response = '<' + url + '> was posted by ' + user.name + ' on ' + date + '. It has been reposted ' + op.count + ' time(s).';
+        
+        console.log("DEBUG: Replying for reposted URL " + url + "."); 
+      
+        bot.reply(message, {
+          text: response,
+          link_names: 0,
+          unfurl_links: false,
+          unfurl_media: false
+        });
+      }).catch(function(err) {
+        console.log("ERROR: An error occurred whilst handling the response: " + err);
+      });
     });
   }
-  }
-});
+}
+
+/**
+ * Parse message timestamps into a human readable format. Slack appends
+ * numbers to the timestamp after a period to ensure uniqueness.
+ */
+function parseTimestamp(ts) {
+  return moment.unix(ts.split('.')[0]).format("DD/MM/YYYY HH:MM:ss");
+}
+
+/**
+ * Fetch a single user from the json storage. If the user doesn't exist
+ * or doesn't have a name then update it using the Slack Web API.
+ */
+function fetchUser(id) {
+  return new Promise(function(resolve, reject) {
+    console.log("DEBUG: Attempting to fetch user " + id);
+    controller.storage.users.get(id, function(err, user) {
+      if (user && user.name) {
+        resolve(user);
+      } else {
+        console.log("DEBUG: " + user.id + " is not in storage, calling Slack API.");
+        worker.api.users.info({user: id}, function (err, res) {          
+          var newUser = {
+            id: res.user.id, 
+            name: res.user.name,
+            count: (user.count || 0)
+          };
+          
+          controller.storage.users.save(newUser, function(err, res) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(newUser)
+            }
+          });
+        })
+      }
+    })
+  });
+}
 
 /**
  * Fetch an updated list of users from the Slack Web API and
  * store the user list.
  */
-function refreshUsers() {
+function fetchAllUsers() {
   worker.api.users.list({}, function(err, res) {
     var users = res.members;
 
@@ -150,4 +248,4 @@ function refreshUsers() {
 }
 
 // Refresh the user list when starting up
-refreshUsers();
+// fetchAllUsers();
