@@ -116,27 +116,7 @@ function processMatches(channel, message, matches) {
           
           channel.urls[url].count = (channel.urls[url].count || 0) + 1;
           
-          promises.push(new Promise(function(resolve, reject) {
-            controller.storage.users.get(message.user, function(err, user) {
-              console.log("DEBUG: Incrementing count for user " + message.user);
-              
-              if (!user) {
-                user = {
-                  id: message.user
-                };
-              }
-              
-              user.count = (user.count || 0) + 1;
-              
-              controller.storage.users.save(user, function(err, res) {
-                if (err) {
-                  reject(Error("An error occurred whilst saving the user: " + err));
-                } else {
-                  resolve();
-                }
-              });
-            });
-          }));
+          promises.push(incrementUserPostCount(message.user));
         } else {
           console.log("DEBUG: Not a repost, saving URL in JSON storage.");
           
@@ -156,12 +136,40 @@ function processMatches(channel, message, matches) {
       }
     }
     
+    // Wait for all users to be incremented
     Promise.all(promises).then(function() {
       resolve(reposts);
     }).catch(function(err) {
       reject(err);      
     });
   });    
+}
+
+/**
+ * Increment the repost count for a specific user.
+ */
+function incrementUserPostCount(userid) {
+  return new Promise(function(resolve, reject) {
+    controller.storage.users.get(userid, function(err, user) {
+      console.log("DEBUG: Incrementing count for user " + userid);
+      
+      if (!user) {
+        user = {
+          id: userid
+        };
+      }
+      
+      user.count = (user.count || 0) + 1;
+      
+      controller.storage.users.save(user, function(err, res) {
+        if (err) {
+          reject(Error("An error occurred whilst saving the user: " + err));
+        } else {
+          resolve();
+        }
+      });
+    });
+  });
 }
 
 /**
