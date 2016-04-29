@@ -6,10 +6,11 @@ if (!process.env.token) {
 var botkit = require('botkit');
 var linkify = require('linkifyjs');
 var moment = require('moment');
+var reconciliation = require('./lib/reconciliation.js');
 
 // Regex match links in slack messages, links will be formatted:
 // <http://www.google.com|label>
-// <http://www.googele.com>
+// <http://www.google.com>
 var pattern = /<(.+?)>/g;
 
 // Set up the controller uing jfs
@@ -230,7 +231,7 @@ function fetchUser(id) {
             if (err) {
               reject(err);
             } else {
-              resolve(newUser)
+              resolve(newUser);
             }
           });
         })
@@ -255,5 +256,5 @@ function fetchAllUsers() {
   });
 }
 
-// Refresh the user list when starting up
-// fetchAllUsers();
+var r = new reconciliation(controller, worker);
+r.reconcileKnownChannels();
