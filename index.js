@@ -19,7 +19,5 @@ var worker = controller.spawn({
   token: process.env.token
 }).startRTM()
 
-var bot = new repostbot(controller, worker);
-
 var r = new reconciliation(controller, worker);
-r.reconcileKnownChannels();
+var b = new repostbot(controller, worker);
