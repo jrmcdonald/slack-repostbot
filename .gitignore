@@ -1,2 +1,15 @@
-node_modules/
-storage/
+**/.DS_Store
+**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+
+### VS Code ###
+.vscode/
