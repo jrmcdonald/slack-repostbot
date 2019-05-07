@@ -11,7 +11,7 @@
 
   <groupId>com.jrmcdonald</groupId>
   <artifactId>slack-repostbot</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1-detect-links-SNAPSHOT</version>
   <name>Slack Repostbot</name>
   <description>Slackbot that detects reposted links.</description>
   <url>https://github.com/jrmcdonald/slack-repostbot</url>
@@ -55,6 +55,11 @@
       <version>4.1.2-rc.2</version>
     </dependency>
     <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
       <scope>runtime</scope>
@@ -63,11 +68,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>runtime</scope>
     </dependency>
   </dependencies>
 
