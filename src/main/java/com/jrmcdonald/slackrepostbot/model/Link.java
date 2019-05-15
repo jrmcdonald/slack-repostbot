@@ -1,6 +1,5 @@
 package com.jrmcdonald.slackrepostbot.model;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -26,61 +25,62 @@ public class Link {
 
     private Long count;
 
-    protected Link() {}
+    protected Link() {
+    }
 
     public Link(final String url, final String poster) {
         this.url = url;
         this.poster = poster;
-        this.count = 0l;
+        this.count = 1l;
     }
-    
+
     /**
      * @return the url
      */
     public String getUrl() {
-      return url;
+        return url;
     }
 
     /**
      * @param url the url to set
      */
     public void setUrl(String url) {
-      this.url = url;
+        this.url = url;
     }
 
     /**
      * @return the poster
      */
     public String getPoster() {
-      return poster;
+        return poster;
     }
 
     /**
      * @param poster the poster to set
      */
     public void setPoster(String poster) {
-      this.poster = poster;
+        this.poster = poster;
     }
 
     /**
      * @return the channel
      */
     public Channel getChannel() {
-      return channel;
+        return channel;
     }
 
     /**
      * @param channel the channel to set
      */
     public void setChannel(Channel channel) {
-      this.channel = channel;
+        this.channel = channel;
     }
 
     /**
      * @return the count
      */
     public Long getCount() {
-      return count;
+        return count;
     }
 
     /**
@@ -94,27 +94,24 @@ public class Link {
      * @param count the count to set
      */
     public void setCount(Long count) {
-      this.count = count;
+        this.count = count;
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 31). // two randomly chosen prime numbers
-            // if deriving: appendSuper(super.hashCode()).
-            append(url).
-            toHashCode();
+        // if deriving: appendSuper(super.hashCode()).
+                append(url).toHashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-       if (!(obj instanceof Link))
+        if (!(obj instanceof Link))
             return false;
         if (obj == this)
             return true;
 
         Link rhs = (Link) obj;
-        return new EqualsBuilder().
-            append(url, rhs.url).
-            isEquals();
+        return new EqualsBuilder().append(url, rhs.url).isEquals();
     }
 }
