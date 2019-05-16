@@ -112,6 +112,7 @@ public class ChannelServiceTest {
 
         // check that there is a repost
         assertThat(reposts.size()).isEqualTo(1);
+        assertThat(reposts.get(0)).isEqualTo(comparator.getLinks().get(BING_URL));
     }
 
     private Channel verifyChannelArgument(InvocationOnMock invocation, Channel comparator) {
