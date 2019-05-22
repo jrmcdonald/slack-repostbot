@@ -1,4 +1,4 @@
-package com.jrmcdonald.slackrepostbot;
+package com.jrmcdonald.slackrepostbot.util;
 
 /**
  * SlackMessage

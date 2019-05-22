@@ -1,21 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>2.1.4.RELEASE</version>
-    <relativePath/>
+    <relativePath />
   </parent>
-
   <groupId>com.jrmcdonald</groupId>
   <artifactId>slack-repostbot</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1-task-2-store-links-SNAPSHOT</version>
   <name>Slack Repostbot</name>
   <description>Slackbot that detects reposted links.</description>
   <url>https://github.com/jrmcdonald/slack-repostbot</url>
-
   <developers>
     <developer>
       <id>jrmcdonald</id>
@@ -24,26 +21,22 @@
       <organizationUrl>http://www.qwyck.co.uk</organizationUrl>
     </developer>
   </developers>
-
   <licenses>
     <license>
       <name>GPL-3.0</name>
       <url>https://opensource.org/licenses/GPL-3.0</url>
     </license>
   </licenses>
-  
   <scm>
     <url>https://github.com/jrmcdonald/slack-repostbot</url>
     <connection>scm:git:git://github.com/jrmcdonald/slack-repostbot.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jrmcdonald/slack-repostbot.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-  
   <properties>
     <java.version>1.8</java.version>
     <docker.repository>jrmcdonald</docker.repository>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -53,6 +46,11 @@
       <groupId>me.ramswaroop.jbot</groupId>
       <artifactId>jbot</artifactId>
       <version>4.1.2-rc.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.9</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
@@ -68,9 +66,32 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.4.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>2.23.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.11.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -78,17 +99,25 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
       <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.22.0</version>
+      </plugin>
+      <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>dockerfile-maven-plugin</artifactId>
         <version>1.4.10</version>
         <executions>
-            <execution>
+          <execution>
             <id>default</id>
             <goals>
-                <goal>build</goal>
-                <goal>push</goal>
+              <goal>build</goal>
+              <goal>push</goal>
             </goals>
-            </execution>
+          </execution>
         </executions>
         <configuration>
           <dockerfile>src/main/docker/Dockerfile</dockerfile>
@@ -115,5 +144,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
