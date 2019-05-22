@@ -63,6 +63,8 @@ public class RepostBot extends Bot {
             }
         }
 
-        channelService.processLinks(event.getChannelId(), event.getUserId(), validLinks);
+        if (validLinks.size() > 0) {
+            channelService.processLinks(event.getChannelId(), event.getUserId(), validLinks);
+        }
     }
 }

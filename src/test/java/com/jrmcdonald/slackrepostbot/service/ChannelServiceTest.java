@@ -14,16 +14,14 @@ import com.jrmcdonald.slackrepostbot.model.Channel;
 import com.jrmcdonald.slackrepostbot.model.Link;
 import com.jrmcdonald.slackrepostbot.repository.ChannelRepository;
 import com.jrmcdonald.slackrepostbot.util.ChannelBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class ChannelServiceTest {
 
     private static final String GOOGLE_URL = "http://www.google.com";
@@ -31,11 +29,15 @@ public class ChannelServiceTest {
     private static final String CHANNEL_ID = "U023BECGF";
     private static final String USER_ID = "A1E78BACV";
 
-    @MockBean
+    @Mock
     private ChannelRepository channelRepository;
 
-    @Autowired
     private ChannelService channelService;
+
+    @BeforeEach
+    public void initEach() {
+        this.channelService = new ChannelService(channelRepository);
+    }
 
     @Test
     public void givenChatMessageWithNewChannelAndNewLink_whenMessageIsProcessed_thenNewLinkIsStored()

@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.jrmcdonald.slackrepostbot.model.Channel;
 import com.jrmcdonald.slackrepostbot.model.Link;
 import com.jrmcdonald.slackrepostbot.repository.ChannelRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,8 +14,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class ChannelService {
 
-    @Autowired
-    private ChannelRepository channelRepository;
+    private final ChannelRepository channelRepository;
+
+    public ChannelService(final ChannelRepository channelRepository) {
+        this.channelRepository = channelRepository;
+    }
 
     private Channel getChannel(final String channelId) {
         Channel channel = null;
@@ -56,7 +58,8 @@ public class ChannelService {
         return newLink;
     }
 
-    public List<Link> processLinks(final String channelId, final String userId, final List<String> links) {
+    public List<Link> processLinks(final String channelId, final String userId,
+            final List<String> links) {
         ArrayList<Link> reposts = new ArrayList<Link>();
 
         Channel channel = getChannel(channelId);
