@@ -9,7 +9,7 @@
   </parent>
   <groupId>com.jrmcdonald</groupId>
   <artifactId>slack-repostbot</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1-jib-SNAPSHOT</version>
   <name>Slack Repostbot</name>
   <description>Slackbot that detects reposted links.</description>
   <url>https://github.com/jrmcdonald/slack-repostbot</url>
@@ -34,8 +34,9 @@
     <tag>HEAD</tag>
   </scm>
   <properties>
+    <maven.deploy.skip>true</maven.deploy.skip>
     <java.version>1.8</java.version>
-    <docker.repository>jrmcdonald</docker.repository>
+    <docker.repository>docker.io/jrmcdonald</docker.repository>
   </properties>
   <dependencies>
     <dependency>
@@ -107,31 +108,48 @@
         <version>2.22.0</version>
       </plugin>
       <plugin>
-        <groupId>com.spotify</groupId>
-        <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>1.4.10</version>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>1.2.0</version>
         <executions>
           <execution>
-            <id>default</id>
+            <id>buildTar</id>
+            <goals>
+              <goal>buildTar</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+          <execution>
+            <id>dockerBuild</id>
+            <goals>
+              <goal>dockerBuild</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+          <execution>
+            <id>build</id>
             <goals>
               <goal>build</goal>
-              <goal>push</goal>
             </goals>
+            <phase>deploy</phase>
           </execution>
         </executions>
         <configuration>
-          <dockerfile>src/main/docker/Dockerfile</dockerfile>
-          <repository>${docker.repository}/${project.artifactId}</repository>
-          <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-          <tag>${project.version}</tag>
-          <buildArgs>
-            <PROJECT_VERSION>${project.version}</PROJECT_VERSION>
-            <PROJECT_BUILD_TIMESTAMP>${maven.build.timestamp}</PROJECT_BUILD_TIMESTAMP>
-            <PROJECT_NAME>${project.name}</PROJECT_NAME>
-            <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
-            <PROJECT_ORGANISATION>${project.organization.name}</PROJECT_ORGANISATION>
-            <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
-          </buildArgs>
+          <to>
+            <image>${docker.repository}/${project.artifactId}</image>
+            <tags>
+              <tag>${project.version}</tag>
+              <tag>latest</tag>
+            </tags>
+          </to>
+          <container>
+            <labels>
+              <org.opencontainers.image.version>${project.version}</org.opencontainers.image.version>
+              <org.opencontainers.image.created>${maven.build.timestamp}</org.opencontainers.image.created>
+              <org.opencontainers.image.title>${project.name}</org.opencontainers.image.title>
+              <org.opencontainers.image.description>${project.description}</org.opencontainers.image.description>
+            </labels>
+          </container>
         </configuration>
       </plugin>
       <plugin>
