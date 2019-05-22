@@ -9,7 +9,7 @@
   </parent>
   <groupId>com.jrmcdonald</groupId>
   <artifactId>slack-repostbot</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1-jib-SNAPSHOT</version>
   <name>Slack Repostbot</name>
   <description>Slackbot that detects reposted links.</description>
   <url>https://github.com/jrmcdonald/slack-repostbot</url>
