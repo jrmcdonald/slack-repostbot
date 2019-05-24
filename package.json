@@ -6,7 +6,7 @@
   "dependencies": {
     "botkit": "^4.0.2",
     "bunyan": "^1.8.0",
-    "jfs": "^0.2.6",
+    "jfs": "^0.3.0",
     "linkifyjs": "^2.0.0-beta.9",
     "moment": "^2.12.0"
   },
