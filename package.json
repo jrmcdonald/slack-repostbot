@@ -4,7 +4,7 @@
   "description": "A slack bot to identify reposts.",
   "main": "repostbot.js",
   "dependencies": {
-    "botkit": "^0.0.15",
+    "botkit": "^4.0.2",
     "bunyan": "^1.8.0",
     "jfs": "^0.2.6",
     "linkifyjs": "^2.0.0-beta.9",
